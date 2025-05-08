@@ -2,8 +2,8 @@
 Contributors: BlazeThemes
 Tags: demo importer, blazethemes, widgets, content, import, one click import, widgets, customizer
 Requires at least: 5.3
-Tested up to: 6.5
-Stable tag: 1.0.11
+Tested up to: 6.8
+Stable tag: 1.0.12
 Requires PHP: 5.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -47,7 +47,10 @@ Blaze Demo Importer supports only the official themes developed by author BlazeT
 2. Information Box and Reset Wesbite check box option.
 
 == Changelog ==
-= 1.0.11 - on it =
+= 1.0.12 - May 8th, 2024 =
+    * Added - wordpress compatibility
+
+= 1.0.11 - Jun 10th, 2024 =
     * Added - site reset for plugin demo pages added
 
 = 1.0.10 - June 17th, 2024 =

@@ -53,7 +53,8 @@ if( ! class_exists( 'Admin_Menu' ) ) :
          * @since 1.0.5
          */
         public function register_scripts( $hook ) {
-            if( $hook == 'blogistic-info_page_blaze-system-info' ) :
+            $prefix = str_replace( '-info', '', $this->parent_menu_slug );
+            if( $hook == ( $prefix . '-info_page_blaze-system-info' ) ) :
                 wp_enqueue_style( 'blaze-admin-menu', BLAZE_DEMO_IMPORTER_URL . 'admin-menu/menu.css', [], BLAZE_DEMO_IMPORTER_VERSION );
                 wp_enqueue_script( 'blaze-admin-menu', BLAZE_DEMO_IMPORTER_URL . 'admin-menu/menu.js', [ 'jquery' ], BLAZE_DEMO_IMPORTER_VERSION, true );
                 wp_localize_script( 'blaze-admin-menu', 'BlazeMenuObject', [

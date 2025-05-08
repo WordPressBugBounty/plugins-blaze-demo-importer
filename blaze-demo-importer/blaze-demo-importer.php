@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Blaze Demo Importer
  * Description: Easily imports demo with just one click.
- * Version: 1.0.11
+ * Version: 1.0.12
  * Author: BlazeThemes
  * Author URI:  https://blazethemes.com/
  * Text Domain: blaze-demo-importer
