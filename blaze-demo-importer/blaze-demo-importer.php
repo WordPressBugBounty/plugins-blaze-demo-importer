@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Blaze Demo Importer
  * Description: Easily imports demo with just one click.
- * Version: 1.0.12
+ * Version: 1.0.13
  * Author: BlazeThemes
  * Author URI:  https://blazethemes.com/
  * Text Domain: blaze-demo-importer
@@ -89,6 +89,7 @@ if ( ! class_exists('Blaze_Demo_Importer_Importer') ) {
         }
 
         function blaze_demo_importer_install_plugin() {
+            if( ! current_user_can( 'install_plugins' ) ) $this->send_permission_denied_ajax_response();
             check_ajax_referer('demo-importer-ajax', 'security');
 
             $demo_slug = isset($_POST['demo']) ? sanitize_text_field($_POST['demo']) : '';
@@ -121,6 +122,7 @@ if ( ! class_exists('Blaze_Demo_Importer_Importer') ) {
         }
 
         function blaze_demo_importer_activate_plugin() {
+            if( ! current_user_can( 'activate_plugins' ) ) $this->send_permission_denied_ajax_response();
             check_ajax_referer('demo-importer-ajax', 'security');
 
             $demo_slug = isset($_POST['demo']) ? sanitize_text_field($_POST['demo']) : '';
@@ -151,6 +153,7 @@ if ( ! class_exists('Blaze_Demo_Importer_Importer') ) {
         }
 
         function blaze_demo_importer_download_files() {
+            if( ! current_user_can( 'upload_files' ) ) $this->send_permission_denied_ajax_response();
             check_ajax_referer('demo-importer-ajax', 'security');
             $demo_slug = isset($_POST['demo']) ? sanitize_text_field($_POST['demo']) : '';
             $required_files = isset($_POST['files']) ? wp_unslash($_POST['files']) : [];
@@ -185,6 +188,7 @@ if ( ! class_exists('Blaze_Demo_Importer_Importer') ) {
         }
 
         function blaze_demo_importer_import_xml() {
+            if( ! current_user_can( 'import' ) ) $this->send_permission_denied_ajax_response();
             check_ajax_referer('demo-importer-ajax', 'security');
             
             $demo_slug = isset($_POST['demo']) ? sanitize_text_field($_POST['demo']) : '';
@@ -226,6 +230,7 @@ if ( ! class_exists('Blaze_Demo_Importer_Importer') ) {
         }
 
         function blaze_demo_importer_customizer_import() {
+            if( ! current_user_can( 'customize' ) ) $this->send_permission_denied_ajax_response();
             check_ajax_referer('demo-importer-ajax', 'security');
 
             $demo_slug = isset($_POST['demo']) ? sanitize_text_field($_POST['demo']) : '';
@@ -267,6 +272,7 @@ if ( ! class_exists('Blaze_Demo_Importer_Importer') ) {
         }
 
         function blaze_demo_importer_menu_import() {
+            if( ! current_user_can( 'customize' ) ) $this->send_permission_denied_ajax_response();
             check_ajax_referer('demo-importer-ajax', 'security');
 
             $demo_slug = isset($_POST['demo']) ? sanitize_text_field($_POST['demo']) : '';
@@ -341,6 +347,7 @@ if ( ! class_exists('Blaze_Demo_Importer_Importer') ) {
         }
 
         function blaze_demo_importer_importing_widget() {
+            if( ! current_user_can( 'edit_theme_options' ) ) $this->send_permission_denied_ajax_response();
             check_ajax_referer('demo-importer-ajax', 'security');
             
             $demo_slug = isset($_POST['demo']) ? sanitize_text_field($_POST['demo']) : '';
@@ -384,6 +391,7 @@ if ( ! class_exists('Blaze_Demo_Importer_Importer') ) {
         }
 
         function blaze_demo_importer_importing_revslider() {
+            if( ! current_user_can( 'edit_theme_options' ) ) $this->send_permission_denied_ajax_response();
             check_ajax_referer('demo-importer-ajax', 'security');
 
             $demo_slug = isset($_POST['demo']) ? sanitize_text_field($_POST['demo']) : '';
@@ -799,6 +807,14 @@ if ( ! class_exists('Blaze_Demo_Importer_Importer') ) {
         }
 
         public function send_ajax_response() {
+            $json = wp_json_encode($this->ajax_response);
+            echo $json;
+            die();
+        }
+
+        public function send_permission_denied_ajax_response() {
+            $this->ajax_response['error'] = true;
+            $this->ajax_response['error_message'] = esc_html__('You do not have permission to perform this action', 'blaze-demo-importer');
             $json = wp_json_encode($this->ajax_response);
             echo $json;
             die();
