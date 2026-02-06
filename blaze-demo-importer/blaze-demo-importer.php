@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Blaze Demo Importer
  * Description: Easily imports demo with just one click.
- * Version: 1.0.13
+ * Version: 1.0.15
  * Author: BlazeThemes
  * Author URI:  https://blazethemes.com/
  * Text Domain: blaze-demo-importer
@@ -40,13 +40,11 @@ if ( ! class_exists('Blaze_Demo_Importer_Importer') ) {
             $this->local_uploads_dir = get_template_directory();
             $this->plugin_install_count = 0;
             $this->plugin_active_count = 0;
-            $this->current_admin_page_type = isset( $_GET['page'] ) ? $_GET['page']: 'no-page';
+            $this->current_admin_page_type = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ): 'no-page';
             if( file_exists( get_template_directory() . '/inc/admin/assets/demos.php' ) ) $this->configFile = include get_template_directory() . '/inc/admin/assets/demos.php';
             require_once BLAZE_DEMO_IMPORTER_PATH . 'classes/class-demo-importer.php';
             require_once BLAZE_DEMO_IMPORTER_PATH . 'classes/class-customizer-importer.php';
             require_once BLAZE_DEMO_IMPORTER_PATH . 'classes/class-widget-importer.php';
-            require_once BLAZE_DEMO_IMPORTER_PATH . 'admin-menu/menu.php';
-            add_action('init', array($this, 'load_plugin_textdomain')); // i118 file
             add_action('admin_enqueue_scripts', array($this, 'admin_scripts')); // admin scripts
             add_action('wp_ajax_blaze_demo_importer_install_demo', array($this, 'blaze_demo_importer_install_demo'));
             add_action('wp_ajax_blaze_demo_importer_install_plugin', array($this, 'blaze_demo_importer_install_plugin'));
@@ -59,10 +57,7 @@ if ( ! class_exists('Blaze_Demo_Importer_Importer') ) {
             add_action('wp_ajax_blaze_demo_importer_importing_widget', array($this, 'blaze_demo_importer_importing_widget'));
             add_action('wp_ajax_blaze_demo_importer_importing_revslider', array($this, 'blaze_demo_importer_importing_revslider'));
         }
-        // language file
-        public function load_plugin_textdomain() {
-            load_plugin_textdomain('blaze-demo-importer', false, BLAZE_DEMO_IMPORTER_PATH . '/languages');
-        }
+
         // install demo call
         function blaze_demo_importer_install_demo() {
             check_ajax_referer('demo-importer-ajax', 'security');
@@ -77,6 +72,7 @@ if ( ! class_exists('Blaze_Demo_Importer_Importer') ) {
             $this->ajax_response['plugins'] = $required_plugins;
 
             if (isset($_POST['reset']) && $_POST['reset'] == 'true') {
+                if( ! current_user_can( 'manage_options' ) ) $this->send_permission_denied_ajax_response();
                 $this->database_reset();
                 $this->ajax_response['complete_message'] = esc_html__('Database reset complete', 'blaze-demo-importer');
             }
@@ -92,7 +88,7 @@ if ( ! class_exists('Blaze_Demo_Importer_Importer') ) {
             if( ! current_user_can( 'install_plugins' ) ) $this->send_permission_denied_ajax_response();
             check_ajax_referer('demo-importer-ajax', 'security');
 
-            $demo_slug = isset($_POST['demo']) ? sanitize_text_field($_POST['demo']) : '';
+            $demo_slug = isset($_POST['demo']) ? sanitize_text_field(wp_unslash($_POST['demo'])) : '';
             $required_plugins = isset($_POST['plugins']) ? wp_unslash($_POST['plugins']) : [];
             $required_files = isset($_POST['files']) ? wp_unslash($_POST['files']) : [];
             $admin_page = isset($_POST['admin_page']) ? wp_unslash($_POST['admin_page']) : '';
@@ -570,8 +566,8 @@ if ( ! class_exists('Blaze_Demo_Importer_Importer') ) {
 
             // Import demo content from XML
             if (class_exists('BLAZE_DEMO_IMPORTER_Import')) {
-                $demo_slug = isset($_POST['demo']) ? sanitize_text_field($_POST['demo']) : '';
-                $admin_page = isset($_POST['admin_page']) ? wp_unslash($_POST['admin_page']) : '';
+                $demo_slug = isset($_POST['demo']) ? sanitize_text_field(wp_unslash($_POST['demo'])) : '';
+                $admin_page = isset($_POST['admin_page']) ? sanitize_text_field(wp_unslash($_POST['admin_page'])) : '';
                 // admin_page
                 if( $admin_page == 'news-kit-elementor-addons-starter-sites' ) {
                     $this->configFile = json_decode( file_get_contents( WP_PLUGIN_DIR . '/news-kit-elementor-addons/library/assets/library-pages.json' ), true );
@@ -807,17 +803,21 @@ if ( ! class_exists('Blaze_Demo_Importer_Importer') ) {
         }
 
         public function send_ajax_response() {
-            $json = wp_json_encode($this->ajax_response);
-            echo $json;
-            die();
+            wp_send_json_success($this->ajax_response);
+            // $json = wp_json_encode($this->ajax_response);
+            // echo esc_html( $json );
+            // echo $json;
+            // die();
         }
 
         public function send_permission_denied_ajax_response() {
             $this->ajax_response['error'] = true;
             $this->ajax_response['error_message'] = esc_html__('You do not have permission to perform this action', 'blaze-demo-importer');
             $json = wp_json_encode($this->ajax_response);
-            echo $json;
-            die();
+            wp_send_json_error($this->ajax_response);
+            // echo esc_html( $json );
+            // echo $json;
+            // die();
         }
 
         // admin scripts
@@ -852,3 +852,8 @@ function blaze_demo_importer_importer() {
 }
 
 add_action('after_setup_theme', 'blaze_demo_importer_importer');
+
+add_filter( 'upload_mimes', function( $file_types ) {
+    $file_types['svg'] = 'image/svg+xml';
+    return $file_types;
+});

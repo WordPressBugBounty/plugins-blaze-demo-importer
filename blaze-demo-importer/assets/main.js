@@ -58,7 +58,7 @@
                             }
                         },
                         success: function (response) {
-                            var info = JSON.parse(response);
+                            var info = response.data;
                             if (!info.error) {
                                 if (info.complete_message) {
                                     var logItem = $('<span class="log-item">' + info.complete_message + '</span>').hide().fadeIn(2000)
@@ -197,7 +197,8 @@
                         }
                     },
                     success: function (response) {
-                        var info = JSON.parse(response);
+                        var info = response.data;
+                        console.log( info )
                         if (!info.error) {
                             if (info.complete_message) {
                                 $('#blaze-demo-importer-import-progress .blaze-demo-importer-import-progress-message .message-item:last-child').hide().html('').fadeIn().html(info.complete_message).addClass('complete-item').after('<div class="message-item"></div>');

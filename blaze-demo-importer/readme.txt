@@ -1,14 +1,14 @@
 === Blaze Demo Importer ===
 Contributors: BlazeThemes
-Tags: demo importer, blazethemes, widgets, content, import, one click import, widgets, customizer
+Tags: demo importer, widgets, import, one click import, customizer
 Requires at least: 5.3
-Tested up to: 6.8
-Stable tag: 1.0.13
+Tested up to: 6.9
+Stable tag: 1.0.15
 Requires PHP: 5.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Blaze Demo Importer can be used in all the official themes developed by BlazeThemes. Plugin can be used to import any of the available starter sites settings in your website. Within just a few steps your website will look exactly like the starter website. Provides information about the plugin required to be installed and activated and proceeds automatically.
+Blaze Demo Importer can be used in all the official themes developed by BlazeThemes.
 
 == Description ==
 [Home](https://blazethemes.com/) | [All themes](https://blazethemes.com/themes/) | [Blog](https://blazethemes.com/blog/) | [Support](https://blazethemes.com/support/)
@@ -47,6 +47,13 @@ Blaze Demo Importer supports only the official themes developed by author BlazeT
 2. Information Box and Reset Wesbite check box option.
 
 == Changelog ==
+= 1.0.15 - Dec 22nd, 2025 =
+    * Fixed - customizer dat file import fail issue fixed
+
+= 1.0.14 - Dec 11th, 2025 =
+    * Added - compatibility check for database reset
+    * Removed - system info admin menu removed
+
 = 1.0.13 - Sept 14th, 2025 =
     * Added - user capability check added on ajax functions
     
