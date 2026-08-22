@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Blaze Demo Importer
  * Description: Easily imports demo with just one click.
- * Version: 1.0.15
+ * Version: 1.0.16
  * Author: BlazeThemes
  * Author URI:  https://blazethemes.com/
  * Text Domain: blaze-demo-importer
@@ -537,7 +537,8 @@ if ( ! class_exists('Blaze_Demo_Importer_Importer') ) {
             if (!$menu_array) {
                 return;
             }
-            $locations = get_theme_mod('nav_menu_locations');
+            $locations = get_theme_mod( 'nav_menu_locations', [] );
+            if( ! is_array( $locations ) ) $locations = [];
             foreach ($menu_array as $menuId => $menuname) {
                 $menu_exists = wp_get_nav_menu_object($menuname);
                 if (!$menu_exists) {
@@ -636,7 +637,7 @@ if ( ! class_exists('Blaze_Demo_Importer_Importer') ) {
                             $source = isset($plugin['source']) ? $plugin['source'] : '';
                             $file_path = isset($plugin['file_path']) ? $plugin['file_path'] : '';
                             $location = isset($plugin['location']) ? $plugin['location'] : '';
-                            if ($source == 'wordpress') {
+                            if( strtolower( $source ) == 'wordpress' ) {
                                 $this->plugin_installer_callback($file_path, $plugin_slug);
                             } else {
                                 $this->plugin_offline_installer_callback($file_path, $location);
@@ -651,7 +652,7 @@ if ( ! class_exists('Blaze_Demo_Importer_Importer') ) {
                     $file_path = isset($plugin['file_path']) ? $plugin['file_path'] : '';
                     $location = isset($plugin['location']) ? $plugin['location'] : '';
     
-                    if ($source == 'wordpress') {
+                    if( strtolower( $source ) == 'wordpress' ) {
                         $this->plugin_installer_callback($file_path, $plugin_slug);
                     } else {
                         $this->plugin_offline_installer_callback($file_path, $location);
