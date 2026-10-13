@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Blaze Demo Importer
  * Description: Easily imports demo with just one click.
- * Version: 1.0.16
+ * Version: 1.0.17
  * Author: BlazeThemes
  * Author URI:  https://blazethemes.com/
  * Text Domain: blaze-demo-importer
@@ -484,8 +484,8 @@ if ( ! class_exists('Blaze_Demo_Importer_Importer') ) {
             $custom_tables = array_merge($core_tables, $custom_tables);
 
             foreach ($custom_tables as $tbl) {
-                $wpdb->query('SET foreign_key_checks = 0');
-                $wpdb->query('TRUNCATE TABLE ' . $tbl);
+                $wpdb->query( 'SET foreign_key_checks = 0' );
+                $wpdb->query( "TRUNCATE TABLE `{$tbl}`" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- table names come from SHOW TABLE STATUS, not user input.
             }
 
             // Delete Widgets
@@ -523,11 +523,18 @@ if ( ! class_exists('Blaze_Demo_Importer_Importer') ) {
          * @return bool
          */
         private function clear_uploads($dir) {
+            global $wp_filesystem;
+
+            if ( empty( $wp_filesystem ) ) {
+                require_once ABSPATH . 'wp-admin/includes/file.php';
+                WP_Filesystem();
+            }
+
             $files = array_diff(scandir($dir), array('.', '..'));
             foreach ($files as $file) {
-                ( is_dir("$dir/$file") ) ? $this->clear_uploads("$dir/$file") : unlink("$dir/$file");
+                ( is_dir("$dir/$file") ) ? $this->clear_uploads("$dir/$file") : wp_delete_file("$dir/$file");
             }
-            return ( $dir != $this->uploads_dir['basedir'] ) ? rmdir($dir) : true;
+            return ( $dir != $this->uploads_dir['basedir'] ) ? $wp_filesystem->rmdir($dir) : true;
         }
 
         /*
@@ -716,44 +723,37 @@ if ( ! class_exists('Blaze_Demo_Importer_Importer') ) {
             }
         }
 
-        public function plugin_offline_installer_callback($path, $external_url) {
-
-            $plugin_status = $this->plugin_status($path);
-
-            if ($plugin_status == 'install') {
-                // Make sure we have the dependency.
-                if (!function_exists('WP_Filesystem')) {
-                    require_once( ABSPATH . 'wp-admin/includes/file.php' );
-                }
-
-                /**
-                 * Initialize WordPress' file system handler.
-                 *
-                 * @var WP_Filesystem_Base $wp_filesystem
-                 */
-                WP_Filesystem();
-                global $wp_filesystem;
-
-                $plugin = $this->demo_upload_dir() . 'plugin.zip';
-
-                $file = wp_remote_retrieve_body(wp_remote_get($external_url, array(
-                    'timeout' => 60,
-                )));
-
-                $wp_filesystem->mkdir($this->demo_upload_dir());
-
-                $wp_filesystem->put_contents($plugin, $file);
-
-                unzip_file($plugin, WP_PLUGIN_DIR);
-
-                $plugin_file = WP_PLUGIN_DIR . '/' . esc_html($path);
-
-                $wp_filesystem->delete($plugin);
-
-                $this->activate_plugin($path);
-
-                $this->plugin_install_count++;
+        public function plugin_offline_installer_callback( $path, $external_url ) {
+            $plugin_status = $this->plugin_status( $path );
+        
+            if ( 'install' !== $plugin_status ) {
+                return;
             }
+        
+            if ( ! current_user_can( 'install_plugins' ) ) {
+                return;
+            }
+        
+            // Only allow secure URLs.
+            $external_url = esc_url_raw( $external_url );
+            if ( empty( $external_url ) || 0 !== strpos( $external_url, 'https://' ) ) {
+                return;
+            }
+        
+            require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+            require_once ABSPATH . 'wp-admin/includes/class-wp-ajax-upgrader-skin.php';
+            require_once ABSPATH . 'wp-admin/includes/class-plugin-upgrader.php';
+        
+            $skin     = new WP_Ajax_Upgrader_Skin();
+            $upgrader = new Plugin_Upgrader( $skin );
+            $result   = $upgrader->install( $external_url );
+        
+            if ( is_wp_error( $result ) || ! $result ) {
+                return;
+            }
+        
+            $this->activate_plugin( $path );
+            $this->plugin_install_count++;
         }
 
         /* Plugin API */
@@ -853,8 +853,3 @@ function blaze_demo_importer_importer() {
 }
 
 add_action('after_setup_theme', 'blaze_demo_importer_importer');
-
-add_filter( 'upload_mimes', function( $file_types ) {
-    $file_types['svg'] = 'image/svg+xml';
-    return $file_types;
-});

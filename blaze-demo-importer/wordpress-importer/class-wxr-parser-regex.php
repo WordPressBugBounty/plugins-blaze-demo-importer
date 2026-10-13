@@ -294,7 +294,7 @@ class BLAZE_DEMO_IMPORTER_WXR_Parser_Regex {
     function fopen($filename, $mode = 'r') {
         if ($this->has_gzip)
             return gzopen($filename, $mode);
-        return fopen($filename, $mode);
+        return fopen($filename, $mode); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- streaming a local WXR file line by line; WP_Filesystem has no stream API.
     }
 
     function feof($fp) {
@@ -312,7 +312,7 @@ class BLAZE_DEMO_IMPORTER_WXR_Parser_Regex {
     function fclose($fp) {
         if ($this->has_gzip)
             return gzclose($fp);
-        return fclose($fp);
+        return fclose($fp); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- closes the handle opened above.
     }
 
 }

@@ -223,7 +223,7 @@ if (!class_exists('BLAZE_DEMO_IMPORTER_Demo_Importer')) {
                         activate_plugin($plugin_file);
                     }
 
-                    unlink($upload_path);
+                    wp_delete_file($upload_path);
 
                     wp_send_json_success();
                 }

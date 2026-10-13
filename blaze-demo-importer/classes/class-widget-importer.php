@@ -24,7 +24,7 @@ class BLAZE_DEMO_IMPORTER_Widget_Importer {
         // If no data or could not decode
         if (empty($data) || !is_object($data)) {
             wp_die(
-                    _e('Widget data is not available', 'blaze-demo-importer'), '', array('back_link' => true)
+                esc_html__('Widget data is not available', 'blaze-demo-importer'), '', array('back_link' => true)
             );
         }
 

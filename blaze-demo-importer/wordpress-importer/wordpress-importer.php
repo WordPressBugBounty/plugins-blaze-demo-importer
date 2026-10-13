@@ -1,5 +1,7 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) exit;
+
 if (!defined('WP_LOAD_IMPORTERS')) {
     return;
 }

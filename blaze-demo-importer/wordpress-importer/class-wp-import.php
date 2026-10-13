@@ -100,8 +100,8 @@ class BLAZE_DEMO_IMPORTER_Import extends WP_Importer {
      */
     function import_start($file) {
         if (!is_file($file)) {
-            echo '<p><strong>' . __('Sorry, there has been an error.', 'blaze-demo-importer') . '</strong><br />';
-            echo __('The file does not exist, please try again.', 'blaze-demo-importer') . '</p>';
+            echo '<p><strong>' . esc_html__('Sorry, there has been an error.', 'blaze-demo-importer') . '</strong><br />';
+            echo esc_html__('The file does not exist, please try again.', 'blaze-demo-importer') . '</p>';
             $this->footer();
             die();
         }
@@ -109,7 +109,7 @@ class BLAZE_DEMO_IMPORTER_Import extends WP_Importer {
         $import_data = $this->parse($file);
 
         if (is_wp_error($import_data)) {
-            echo '<p><strong>' . __('Sorry, there has been an error.', 'blaze-demo-importer') . '</strong><br />';
+            echo '<p><strong>' . esc_html__('Sorry, there has been an error.', 'blaze-demo-importer') . '</strong><br />';
             echo esc_html($import_data->get_error_message()) . '</p>';
             $this->footer();
             die();
@@ -144,8 +144,8 @@ class BLAZE_DEMO_IMPORTER_Import extends WP_Importer {
         wp_defer_term_counting(false);
         wp_defer_comment_counting(false);
 
-        echo '<p>' . __('All done.', 'blaze-demo-importer') . ' <a href="' . admin_url() . '">' . __('Have fun!', 'blaze-demo-importer') . '</a>' . '</p>';
-        echo '<p>' . __('Remember to update the passwords and roles of imported users.', 'blaze-demo-importer') . '</p>';
+        echo '<p>' . esc_html__('All done.', 'blaze-demo-importer') . ' <a href="' . esc_url( admin_url() ) . '">' . esc_html__('Have fun!', 'blaze-demo-importer') . '</a>' . '</p>';
+        echo '<p>' . esc_html__('Remember to update the passwords and roles of imported users.', 'blaze-demo-importer') . '</p>';
 
         do_action('import_end');
     }
@@ -160,12 +160,16 @@ class BLAZE_DEMO_IMPORTER_Import extends WP_Importer {
         $file = wp_import_handle_upload();
 
         if (isset($file['error'])) {
-            echo '<p><strong>' . __('Sorry, there has been an error.', 'blaze-demo-importer') . '</strong><br />';
+            echo '<p><strong>' . esc_html__('Sorry, there has been an error.', 'blaze-demo-importer') . '</strong><br />';
             echo esc_html($file['error']) . '</p>';
             return false;
         } else if (!file_exists($file['file'])) {
-            echo '<p><strong>' . __('Sorry, there has been an error.', 'blaze-demo-importer') . '</strong><br />';
-            printf(__('The export file could not be found at <code>%s</code>. It is likely that this was caused by a permissions problem.', 'blaze-demo-importer'), esc_html($file['file']));
+            echo '<p><strong>' . esc_html__('Sorry, there has been an error.', 'blaze-demo-importer') . '</strong><br />';
+            printf(
+                /* translators: %s: path to the export file */
+                esc_html__('The export file could not be found at <code>%s</code>. It is likely that this was caused by a permissions problem.', 'blaze-demo-importer'),
+                esc_html($file['file'])
+            );
             echo '</p>';
             return false;
         }
@@ -173,7 +177,7 @@ class BLAZE_DEMO_IMPORTER_Import extends WP_Importer {
         $this->id = (int) $file['id'];
         $import_data = $this->parse($file['file']);
         if (is_wp_error($import_data)) {
-            echo '<p><strong>' . __('Sorry, there has been an error.', 'blaze-demo-importer') . '</strong><br />';
+            echo '<p><strong>' . esc_html__('Sorry, there has been an error.', 'blaze-demo-importer') . '</strong><br />';
             echo esc_html($import_data->get_error_message()) . '</p>';
             return false;
         }
@@ -181,7 +185,11 @@ class BLAZE_DEMO_IMPORTER_Import extends WP_Importer {
         $this->version = $import_data['version'];
         if ($this->version > $this->max_wxr_version) {
             echo '<div class="error"><p><strong>';
-            printf(__('This WXR file (version %s) may not be supported by this version of the importer. Please consider updating.', 'blaze-demo-importer'), esc_html($import_data['version']));
+            printf(
+                /* translators: %s: WXR file version number */
+                esc_html__('This WXR file (version %s) may not be supported by this version of the importer. Please consider updating.', 'blaze-demo-importer'),
+                esc_html($import_data['version'])
+            );
             echo '</strong></p></div>';
         }
 
@@ -206,7 +214,11 @@ class BLAZE_DEMO_IMPORTER_Import extends WP_Importer {
             foreach ($import_data['posts'] as $post) {
                 $login = sanitize_user($post['post_author'], true);
                 if (empty($login)) {
-                    printf(__('Failed to import author %s. Their posts will be attributed to the current user.', 'blaze-demo-importer'), esc_html($post['post_author']));
+                    printf(
+                        /* translators: %s: author name */
+                        esc_html__('Failed to import author %s. Their posts will be attributed to the current user.', 'blaze-demo-importer'),
+                        esc_html($post['post_author'])
+                    );
                     echo '<br />';
                     continue;
                 }
@@ -227,15 +239,21 @@ class BLAZE_DEMO_IMPORTER_Import extends WP_Importer {
     function import_options() {
         $j = 0;
         ?>
-        <form action="<?php echo admin_url('admin.php?import=wordpress&amp;step=2'); ?>" method="post">
+        <form action="<?php echo esc_url( admin_url('admin.php?import=wordpress&amp;step=2') ); ?>" method="post">
             <?php wp_nonce_field('import-wordpress'); ?>
-            <input type="hidden" name="import_id" value="<?php echo $this->id; ?>" />
+            <input type="hidden" name="import_id" value="<?php echo esc_attr( $this->id ); ?>" />
 
             <?php if (!empty($this->authors)) : ?>
-                <h3><?php _e('Assign Authors', 'blaze-demo-importer'); ?></h3>
-                <p><?php _e('To make it simpler for you to edit and save the imported content, you may want to reassign the author of the imported item to an existing user of this site, such as your primary administrator account.', 'blaze-demo-importer'); ?></p>
+                <h3><?php esc_html_e('Assign Authors', 'blaze-demo-importer'); ?></h3>
+                <p><?php esc_html_e('To make it simpler for you to edit and save the imported content, you may want to reassign the author of the imported item to an existing user of this site, such as your primary administrator account.', 'blaze-demo-importer'); ?></p>
                 <?php if ($this->allow_create_users()) : ?>
-                    <p><?php printf(__('If a new user is created by WordPress, a new password will be randomly generated and the new user&#8217;s role will be set as %s. Manually changing the new user&#8217;s details will be necessary.', 'blaze-demo-importer'), esc_html(get_option('default_role'))); ?></p>
+                    <p><?php
+                        printf(
+                            /* translators: %s: default user role */
+                            esc_html__('If a new user is created by WordPress, a new password will be randomly generated and the new user&#8217;s role will be set as %s. Manually changing the new user&#8217;s details will be necessary.', 'blaze-demo-importer'),
+                            esc_html(get_option('default_role'))
+                        );
+                    ?></p>
                 <?php endif; ?>
                 <ol id="authors">
                     <?php foreach ($this->authors as $author) : ?>
@@ -245,10 +263,10 @@ class BLAZE_DEMO_IMPORTER_Import extends WP_Importer {
             <?php endif; ?>
 
             <?php if ($this->allow_fetch_attachments()) : ?>
-                <h3><?php _e('Import Attachments', 'blaze-demo-importer'); ?></h3>
+                <h3><?php esc_html_e('Import Attachments', 'blaze-demo-importer'); ?></h3>
                 <p>
                     <input type="checkbox" value="1" name="fetch_attachments" id="import-attachments" />
-                    <label for="import-attachments"><?php _e('Download and import file attachments', 'blaze-demo-importer'); ?></label>
+                    <label for="import-attachments"><?php esc_html_e('Download and import file attachments', 'blaze-demo-importer'); ?></label>
                 </p>
             <?php endif; ?>
 
@@ -265,7 +283,7 @@ class BLAZE_DEMO_IMPORTER_Import extends WP_Importer {
      * @param array $author Author information, e.g. login, display name, email
      */
     function author_select($n, $author) {
-        _e('Import author:', 'blaze-demo-importer');
+        esc_html_e('Import author:', 'blaze-demo-importer');
         echo ' <strong>' . esc_html($author['author_display_name']);
         if ($this->version != '1.0')
             echo ' (' . esc_html($author['author_login']) . ')';
@@ -276,24 +294,24 @@ class BLAZE_DEMO_IMPORTER_Import extends WP_Importer {
 
         $create_users = $this->allow_create_users();
         if ($create_users) {
-            echo '<label for="user_new_' . $n . '">';
+            echo '<label for="user_new_' . esc_attr( $n ) . '">';
             if ($this->version != '1.0') {
-                _e('or create new user with login name:', 'blaze-demo-importer');
+                esc_html_e('or create new user with login name:', 'blaze-demo-importer');
                 $value = '';
             } else {
-                _e('as a new user:', 'blaze-demo-importer');
+                esc_html_e('as a new user:', 'blaze-demo-importer');
                 $value = esc_attr(sanitize_user($author['author_login'], true));
             }
             echo '</label>';
 
-            echo ' <input type="text" id="user_new_' . $n . '" name="user_new[' . $n . ']" value="' . $value . '" /><br />';
+            echo ' <input type="text" id="user_new_' . esc_attr( $n ) . '" name="user_new[' . esc_attr( $n ) . ']" value="' . esc_attr( $value ) . '" /><br />';
         }
 
-        echo '<label for="imported_authors_' . $n . '">';
+        echo '<label for="imported_authors_' . esc_attr( $n ) . '">';
         if (!$create_users && $this->version == '1.0') {
-            _e('assign posts to an existing user:', 'blaze-demo-importer');
+            esc_html_e('assign posts to an existing user:', 'blaze-demo-importer');
         } else {
-            _e('or assign posts to an existing user:', 'blaze-demo-importer');
+            esc_html_e('or assign posts to an existing user:', 'blaze-demo-importer');
         }
         echo '</label>';
 
@@ -306,7 +324,7 @@ class BLAZE_DEMO_IMPORTER_Import extends WP_Importer {
             'echo' => 0,
         ));
 
-        echo '<input type="hidden" name="imported_authors[' . $n . ']" value="' . esc_attr($author['author_login']) . '" />';
+        echo '<input type="hidden" name="imported_authors[' . esc_attr( $n ) . ']" value="' . esc_attr($author['author_login']) . '" />';
 
         if ($this->version != '1.0')
             echo '</div>';
@@ -355,9 +373,13 @@ class BLAZE_DEMO_IMPORTER_Import extends WP_Importer {
                         $this->processed_authors[$old_id] = $user_id;
                     $this->author_mapping[$santized_old_login] = $user_id;
                 } else {
-                    printf(__('Failed to create new user for %s. Their posts will be attributed to the current user.', 'blaze-demo-importer'), esc_html($this->authors[$old_login]['author_display_name']));
+                    printf(
+                        /* translators: %s: author display name */
+                        esc_html__('Failed to create new user for %s. Their posts will be attributed to the current user.', 'blaze-demo-importer'),
+                        esc_html($this->authors[$old_login]['author_display_name'])
+                    );
                     if (defined('IMPORT_DEBUG') && IMPORT_DEBUG)
-                        echo ' ' . $user_id->get_error_message();
+                        echo ' ' . esc_html( $user_id->get_error_message() );
                     echo '<br />';
                 }
             }
@@ -408,9 +430,13 @@ class BLAZE_DEMO_IMPORTER_Import extends WP_Importer {
                 if (isset($cat['term_id']))
                     $this->processed_terms[intval($cat['term_id'])] = $id;
             } else {
-                printf(__('Failed to import category %s', 'blaze-demo-importer'), esc_html($cat['category_nicename']));
+                printf(
+                    /* translators: %s: category slug */
+                    esc_html__('Failed to import category %s', 'blaze-demo-importer'),
+                    esc_html($cat['category_nicename'])
+                );
                 if (defined('IMPORT_DEBUG') && IMPORT_DEBUG)
-                    echo ': ' . $id->get_error_message();
+                    echo ': ' . esc_html( $id->get_error_message() );
                 echo '<br />';
                 continue;
             }
@@ -454,9 +480,13 @@ class BLAZE_DEMO_IMPORTER_Import extends WP_Importer {
                 if (isset($tag['term_id']))
                     $this->processed_terms[intval($tag['term_id'])] = $id['term_id'];
             } else {
-                printf(__('Failed to import post tag %s', 'blaze-demo-importer'), esc_html($tag['tag_name']));
+                printf(
+                    /* translators: %s: tag name */
+                    esc_html__('Failed to import post tag %s', 'blaze-demo-importer'),
+                    esc_html($tag['tag_name'])
+                );
                 if (defined('IMPORT_DEBUG') && IMPORT_DEBUG)
-                    echo ': ' . $id->get_error_message();
+                    echo ': ' . esc_html( $id->get_error_message() );
                 echo '<br />';
                 continue;
             }
@@ -510,9 +540,14 @@ class BLAZE_DEMO_IMPORTER_Import extends WP_Importer {
                 if (isset($term['term_id']))
                     $this->processed_terms[intval($term['term_id'])] = $id['term_id'];
             } else {
-                printf(__('Failed to import %s %s', 'blaze-demo-importer'), esc_html($term['term_taxonomy']), esc_html($term['term_name']));
-                if (defined('IMPORT_DEBUG') && IMPORT_DEBUG)
-                    echo ': ' . $id->get_error_message();
+                printf(
+                    /* translators: 1: taxonomy name, 2: term name */
+                    esc_html__( 'Failed to import %1$s %2$s', 'blaze-demo-importer' ),
+                    esc_html( $term['term_taxonomy'] ),
+                    esc_html( $term['term_name'] )
+                );
+                if ( defined('IMPORT_DEBUG') && IMPORT_DEBUG )
+                    echo ': ' . esc_html( $id->get_error_message() );
                 echo '<br />';
                 continue;
             }
@@ -603,7 +638,12 @@ class BLAZE_DEMO_IMPORTER_Import extends WP_Importer {
             $post = apply_filters('wp_import_post_data_raw', $post);
 
             if (!post_type_exists($post['post_type'])) {
-                printf(__('Failed to import &#8220;%s&#8221;: Invalid post type %s', 'blaze-demo-importer'), esc_html($post['post_title']), esc_html($post['post_type']));
+                printf(
+                    /* translators: 1: post title, 2: post type */
+                    esc_html__('Failed to import &#8220;%1$s&#8221;: Invalid post type %2$s', 'blaze-demo-importer'),
+                    esc_html($post['post_title']),
+                    esc_html($post['post_type'])
+                );
                 echo '<br />';
                 do_action('wp_import_post_exists', $post);
                 continue;
@@ -639,7 +679,12 @@ class BLAZE_DEMO_IMPORTER_Import extends WP_Importer {
             $post_exists = apply_filters('wp_import_existing_post', $post_exists, $post);
 
             if ($post_exists && get_post_type($post_exists) == $post['post_type']) {
-                printf(__('%s &#8220;%s&#8221; already exists.', 'blaze-demo-importer'), $post_type_object->labels->singular_name, esc_html($post['post_title']));
+                printf(
+                    /* translators: 1: post type singular name, 2: post title */
+                    esc_html__( '%1$s &#8220;%2$s&#8221; already exists.', 'blaze-demo-importer' ),
+                    esc_html( $post_type_object->labels->singular_name ),
+                    esc_html( $post['post_title'] )
+                );
                 echo '<br />';
                 $comment_post_ID = $post_id = $post_exists;
                 $this->processed_posts[intval($post['post_id'])] = intval($post_exists);
@@ -701,9 +746,14 @@ class BLAZE_DEMO_IMPORTER_Import extends WP_Importer {
                 }
 
                 if (is_wp_error($post_id)) {
-                    printf(__('Failed to import %s &#8220;%s&#8221;', 'blaze-demo-importer'), $post_type_object->labels->singular_name, esc_html($post['post_title']));
-                    if (defined('IMPORT_DEBUG') && IMPORT_DEBUG)
-                        echo ': ' . $post_id->get_error_message();
+                    printf(
+                        /* translators: 1: post type singular name, 2: post title */
+                        esc_html__('Failed to import %1$s &#8220;%2$s&#8221;', 'blaze-demo-importer'),
+                        esc_html( $post_type_object->labels->singular_name ),
+                        esc_html( $post['post_title'] )
+                    );
+                    if ( defined('IMPORT_DEBUG') && IMPORT_DEBUG )
+                        echo ': ' . esc_html( $post_id->get_error_message() );
                     echo '<br />';
                     continue;
                 }
@@ -734,9 +784,14 @@ class BLAZE_DEMO_IMPORTER_Import extends WP_Importer {
                             $term_id = $t['term_id'];
                             do_action('wp_import_insert_term', $t, $term, $post_id, $post);
                         } else {
-                            printf(__('Failed to import %s %s', 'blaze-demo-importer'), esc_html($taxonomy), esc_html($term['name']));
+                            printf(
+                                /* translators: 1: taxonomy name, 2: term name */
+                                esc_html__('Failed to import %1$s %2$s', 'blaze-demo-importer'),
+                                esc_html($taxonomy),
+                                esc_html($term['name'])
+                            );
                             if (defined('IMPORT_DEBUG') && IMPORT_DEBUG)
-                                echo ': ' . $t->get_error_message();
+                                echo ': ' . esc_html( $t->get_error_message() );
                             echo '<br />';
                             do_action('wp_import_insert_term_failed', $t, $term, $post_id, $post);
                             continue;
@@ -874,14 +929,18 @@ class BLAZE_DEMO_IMPORTER_Import extends WP_Importer {
 
         // no nav_menu term associated with this menu item
         if (!$menu_slug) {
-            _e('Menu item skipped due to missing menu slug', 'blaze-demo-importer');
+            esc_html_e('Menu item skipped due to missing menu slug', 'blaze-demo-importer');
             echo '<br />';
             return;
         }
 
         $menu_id = term_exists($menu_slug, 'nav_menu');
         if (!$menu_id) {
-            printf(__('Menu item skipped due to invalid menu slug: %s', 'blaze-demo-importer'), esc_html($menu_slug));
+            printf(
+                /* translators: %s: menu slug */
+                esc_html__('Menu item skipped due to invalid menu slug: %s', 'blaze-demo-importer'),
+                esc_html($menu_slug)
+            );
             echo '<br />';
             return;
         } else {
@@ -986,8 +1045,15 @@ class BLAZE_DEMO_IMPORTER_Import extends WP_Importer {
      * @return array|WP_Error Local file location details on success, WP_Error otherwise
      */
     function fetch_remote_file($url, $post) {
+
+        global $wp_filesystem;
+        if ( empty( $wp_filesystem ) ) {
+            require_once ABSPATH . 'wp-admin/includes/file.php';
+            WP_Filesystem();
+        }
+
         // Extract the file name from the URL.
-        $file_name = basename(parse_url($url, PHP_URL_PATH));
+        $file_name = basename(wp_parse_url($url, PHP_URL_PATH));
 
         if (!$file_name) {
             $file_name = md5($url);
@@ -1009,7 +1075,7 @@ class BLAZE_DEMO_IMPORTER_Import extends WP_Importer {
         ));
 
         if (is_wp_error($remote_response)) {
-            @unlink($tmp_file_name);
+            wp_delete_file($tmp_file_name);
             return new WP_Error(
                     'import_file_error', sprintf(
                             /* translators: 1: The WordPress error message. 2: The WordPress error code. */
@@ -1022,7 +1088,7 @@ class BLAZE_DEMO_IMPORTER_Import extends WP_Importer {
 
         // Make sure the fetch was successful.
         if (200 !== $remote_response_code) {
-            @unlink($tmp_file_name);
+            wp_delete_file($tmp_file_name);
             return new WP_Error(
                     'import_file_error', sprintf(
                             /* translators: 1: The HTTP error message. 2: The HTTP error code. */
@@ -1035,26 +1101,33 @@ class BLAZE_DEMO_IMPORTER_Import extends WP_Importer {
 
         // Request failed.
         if (!$headers) {
-            @unlink($tmp_file_name);
+            wp_delete_file($tmp_file_name);
             return new WP_Error('import_file_error', __('Remote server did not respond', 'blaze-demo-importer'));
         }
 
         $filesize = (int) filesize($tmp_file_name);
 
         if (0 === $filesize) {
-            @unlink($tmp_file_name);
+            wp_delete_file($tmp_file_name);
             return new WP_Error('import_file_error', __('Zero size file downloaded', 'blaze-demo-importer'));
         }
 
         if (!isset($headers['content-encoding']) && isset($headers['content-length']) && $filesize !== (int) $headers['content-length']) {
-            @unlink($tmp_file_name);
+            wp_delete_file($tmp_file_name);
             return new WP_Error('import_file_error', __('Downloaded file has incorrect size', 'blaze-demo-importer'));
         }
 
         $max_size = (int) $this->max_attachment_size();
         if (!empty($max_size) && $filesize > $max_size) {
-            @unlink($tmp_file_name);
-            return new WP_Error('import_file_error', sprintf(__('Remote file is too large, limit is %s', 'blaze-demo-importer'), size_format($max_size)));
+            wp_delete_file($tmp_file_name);
+            return new WP_Error(
+                'import_file_error',
+                sprintf(
+                    /* translators: %s: size of the remote file */
+                    __( 'Remote file is too large, limit is %s', 'blaze-demo-importer' ),
+                    size_format( $max_size )
+                )
+            );
         }
 
         // Override file name with Content-Disposition header value.
@@ -1100,14 +1173,16 @@ class BLAZE_DEMO_IMPORTER_Import extends WP_Importer {
         $move_new_file = copy($tmp_file_name, $new_file);
 
         if (!$move_new_file) {
-            @unlink($tmp_file_name);
+            wp_delete_file($tmp_file_name);
             return new WP_Error('import_file_error', __('The uploaded file could not be moved', 'blaze-demo-importer'));
         }
 
         // Set correct file permissions.
-        $stat = stat(dirname($new_file));
-        $perms = $stat['mode'] & 0000666;
-        chmod($new_file, $perms);
+        if ( $wp_filesystem ) {
+            $stat  = stat( dirname( $new_file ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions
+            $perms = $stat['mode'] & 0000666;
+            $wp_filesystem->chmod( $new_file, $perms );
+        }
 
         $upload = array(
             'file' => $new_file,
@@ -1213,14 +1288,18 @@ class BLAZE_DEMO_IMPORTER_Import extends WP_Importer {
     // Display import page title
     function header() {
         echo '<div class="wrap">';
-        echo '<h2>' . __('Import WordPress', 'blaze-demo-importer') . '</h2>';
+        echo '<h2>' . esc_html__( 'Import WordPress', 'blaze-demo-importer' ) . '</h2>';
 
         $updates = get_plugin_updates();
         $basename = plugin_basename(__FILE__);
         if (isset($updates[$basename])) {
             $update = $updates[$basename];
             echo '<div class="error"><p><strong>';
-            printf(__('A new version of this importer is available. Please update to version %s to ensure compatibility with newer export files.', 'blaze-demo-importer'), $update->update->new_version);
+            printf(
+                /* translators: %s: new version number of the importer */
+                esc_html__( 'A new version of this importer is available. Please update to version %s to ensure compatibility with newer export files.', 'blaze-demo-importer' ),
+                esc_html( $update->update->new_version )
+            );
             echo '</strong></p></div>';
         }
     }
@@ -1235,8 +1314,8 @@ class BLAZE_DEMO_IMPORTER_Import extends WP_Importer {
      */
     function greet() {
         echo '<div class="narrow">';
-        echo '<p>' . __('Howdy! Upload your WordPress eXtended RSS (WXR) file and we&#8217;ll import the posts, pages, comments, custom fields, categories, and tags into this site.', 'blaze-demo-importer') . '</p>';
-        echo '<p>' . __('Choose a WXR (.xml) file to upload, then click Upload file and import.', 'blaze-demo-importer') . '</p>';
+        echo '<p>' . esc_html__('Howdy! Upload your WordPress eXtended RSS (WXR) file and we&#8217;ll import the posts, pages, comments, custom fields, categories, and tags into this site.', 'blaze-demo-importer') . '</p>';
+        echo '<p>' . esc_html__('Choose a WXR (.xml) file to upload, then click Upload file and import.', 'blaze-demo-importer') . '</p>';
         wp_import_upload_form('admin.php?import=wordpress&amp;step=1');
         echo '</div>';
     }
